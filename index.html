@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Number Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="login-container">
+        <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+        <input type="text" id="login-email" placeholder="Enter your email">
+        <input type="password" id="login-password" placeholder="Enter your password">
+        <button onclick="login()">Login <i class="fas fa-arrow-right"></i></button>
+        <p>Don't have an account? <a href="#" onclick="showRegister()">Register here</a></p>
+    </div>
+
+    <div id="register-container" style="display: none;">
+        <h2><i class="fas fa-user-plus"></i> Register</h2>
+        <input type="text" id="register-email" placeholder="Choose an email">
+        <input type="password" id="register-password" placeholder="Choose a password">
+        <button onclick="register()">Register <i class="fas fa-check"></i></button>
+        <p>Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <h1>Guess the Number 🎲</h1>
+        <p id="message">Guess a number between 1 and 100</p>
+        <input type="number" id="guess" min="1" max="100">
+        <button onclick="checkGuess()">Guess <i class="fas fa-bullseye"></i></button>
+        <p id="result"></p>
+    </div>
+
+    <div id="dashboard">
+        <h2><i class="fas fa-trophy"></i> Winners</h2>
+        <ul id="winners-list"></ul>
+        <button onclick="showBalance()">Check Balance</button>
+        <button onclick="transferBalance()">Transfer Balance</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
