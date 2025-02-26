@@ -1,44 +1,191 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Number Game</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>تتبع المصاريف اليومية بالليرة اللبنانية</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .expenses-list {
+            margin-top: 20px;
+        }
+        .day-section {
+            margin-bottom: 20px;
+        }
+        .day-header {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .expense-item {
+            background: #e9ecef;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .total {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
-    <div id="login-container">
-        <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
-        <input type="text" id="login-email" placeholder="Enter your email">
-        <input type="password" id="login-password" placeholder="Enter your password">
-        <button onclick="login()">Login <i class="fas fa-arrow-right"></i></button>
-        <p>Don't have an account? <a href="#" onclick="showRegister()">Register here</a></p>
-    </div>
 
-    <div id="register-container" style="display: none;">
-        <h2><i class="fas fa-user-plus"></i> Register</h2>
-        <input type="text" id="register-email" placeholder="Choose an email">
-        <input type="password" id="register-password" placeholder="Choose a password">
-        <button onclick="register()">Register <i class="fas fa-check"></i></button>
-        <p>Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
-    </div>
+<div class="container">
+    <h1>تتبع مصاريفك اليومية بالليرة اللبنانية</h1>
+    
+    <label for="amount">المبلغ المصروف (ل.ل):</label>
+    <input type="number" id="amount" placeholder="أدخل المبلغ بالليرة اللبنانية">
 
-    <div id="game-container" style="display: none;">
-        <h1>Guess the Number 🎲</h1>
-        <p id="message">Guess a number between 1 and 100</p>
-        <input type="number" id="guess" min="1" max="100">
-        <button onclick="checkGuess()">Guess <i class="fas fa-bullseye"></i></button>
-        <p id="result"></p>
-    </div>
+    <label for="date">التاريخ:</label>
+    <input type="date" id="date" value="" readonly>
 
-    <div id="dashboard">
-        <h2><i class="fas fa-trophy"></i> Winners</h2>
-        <ul id="winners-list"></ul>
-        <button onclick="showBalance()">Check Balance</button>
-        <button onclick="transferBalance()">Transfer Balance</button>
-    </div>
+    <button onclick="addExpense()">إضافة المصروف</button>
 
-    <script src="script.js"></script>
+    <div class="expenses-list" id="expensesList"></div>
+
+    <div class="total" id="total">إجمالي المصروفات: 0 ل.ل</div>
+</div>
+
+<script>
+    // تحميل البيانات من Local Storage عند فتح الصفحة
+    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+    let total = 0;
+
+    function updateUI() {
+        const expensesList = document.getElementById('expensesList');
+        const totalElement = document.getElementById('total');
+
+        // مسح القائمة الحالية
+        expensesList.innerHTML = '';
+
+        // تنظيم المصاريف حسب التاريخ
+        const groupedExpenses = {};
+        expenses.forEach(expense => {
+            if (!groupedExpenses[expense.date]) {
+                groupedExpenses[expense.date] = [];
+            }
+            groupedExpenses[expense.date].push(expense);
+        });
+
+        // عرض المصاريف مرتبة حسب التاريخ
+        Object.keys(groupedExpenses).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+            const daySection = document.createElement('div');
+            daySection.className = 'day-section';
+
+            // إضافة عنوان اليوم
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'day-header';
+            dayHeader.textContent = `تاريخ: ${formatDate(date)}`;
+            daySection.appendChild(dayHeader);
+
+            // إضافة المصاريف الخاصة بهذا اليوم
+            groupedExpenses[date].forEach((expense, index) => {
+                const expenseItem = document.createElement('div');
+                expenseItem.className = 'expense-item';
+                expenseItem.innerHTML = `
+                    <span>${expense.amount.toLocaleString()} ل.ل</span>
+                    <button onclick="removeExpense(${expense.id})">حذف</button>
+                `;
+                daySection.appendChild(expenseItem);
+            });
+
+            expensesList.appendChild(daySection);
+        });
+
+        // تحديث الإجمالي
+        total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        totalElement.textContent = `إجمالي المصروفات: ${total.toLocaleString()} ل.ل`;
+
+        // حفظ البيانات في Local Storage
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+    }
+
+    function addExpense() {
+        const amountInput = document.getElementById('amount');
+        const dateInput = document.getElementById('date');
+        const amount = parseFloat(amountInput.value);
+        const date = dateInput.value; // التاريخ الحالي أو المعدل
+
+        if (isNaN(amount) || amount <= 0) {
+            alert('يرجى إدخال مبلغ صحيح.');
+            return;
+        }
+
+        // إضافة المصروف إلى القائمة مع معرف فريد
+        expenses.push({ id: Date.now(), amount, date });
+        amountInput.value = '';
+        dateInput.value = formatDate(new Date()); // إعادة ضبط التاريخ على اليوم الحالي
+
+        // تحديث الواجهة
+        updateUI();
+    }
+
+    function removeExpense(id) {
+        // تحويل المعرف إلى رقم لضمان المقارنة الصحيحة
+        expenses = expenses.filter(expense => expense.id !== id); // حذف المصروف باستخدام المعرف
+        updateUI(); // تحديث الواجهة
+    }
+
+    function formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // تحديث الواجهة وضبط التاريخ الحالي عند تحميل الصفحة
+    window.onload = function () {
+        document.getElementById('date').value = formatDate(new Date());
+        updateUI();
+    };
+</script>
+
 </body>
 </html>
